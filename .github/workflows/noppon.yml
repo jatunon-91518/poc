@@ -1,0 +1,10 @@
+name: Echo Noppon
+
+on: [push]
+
+jobs:
+  echo-job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Echo message
+      run: echo 'noppon'
