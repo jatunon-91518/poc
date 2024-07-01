@@ -34,7 +34,15 @@ jobs:
     - name: Modify YAML file
       run: |
         cd repo/.github/workflows/
-        yq -y '.jobs.publish-template.strategy.matrix.include += [{"runtime": env.runtime, "target_repo": env.target_repo}]' config.yml
+        # หา index ของกลุ่ม runtime ที่ต้องการเพิ่ม
+        index=$(awk '/- runtime: '"${{ github.event.inputs.runtime }}"'/{print NR; exit}' config.yml)
+        # ถ้าเจอ runtime ที่ตรงกันให้เพิ่ม entry ใหม่หลังบรรทัดนั้น
+        if [ -n "$index" ]; then
+          sed -i "${index}a\ \ \ \ \ \ \ \ - runtime: ${GITHUB_EVENT_INPUTS_RUNTIME}\n \ \ \ \ \ \ \ \ \ target_repo: ${GITHUB_EVENT_INPUTS_TARGET_REPO}" config.yml
+        else
+          echo "Runtime not found!"
+          exit 1
+        fi
 
     - name: Commit and push changes
       run: |
