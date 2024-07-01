@@ -25,12 +25,6 @@ jobs:
         path: repo
         fetch-depth: 0
 
-    - name: Debug Show initial content of config.yml
-      run: |
-        cd repo/.github/workflows/
-        echo "Initial content of config.yml:"
-        cat config.yml
-
     - name: Modify YAML file
       run: |
         cd repo/.github/workflows/
@@ -39,21 +33,3 @@ jobs:
 
         # Use sed for debugging
         sed -i "/^- runtime: ${runtime}/a\            - runtime: ${runtime}\n              target_repo: ${target_repo}" config.yml
-
-    - name: Debug Show modified content of config.yml
-      run: |
-        cd repo/.github/workflows/
-        echo "Modified content of config.yml:"
-        cat config.yml
-
-    - name: Commit and push changes
-      run: |
-        cd repo
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add .github/workflows/config.yml
-        git status
-        git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
