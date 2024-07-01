@@ -1,0 +1,48 @@
+name: Add Runtime and Target Repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      runtime:
+        description: 'Specify the runtime'
+        required: true
+        default: 'xxx'
+      target_repo:
+        description: 'Specify the target repository'
+        required: true
+        default: 'xxx'
+
+jobs:
+  add-runtime:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.PAT }}
+        repository: config
+        path: repo
+        fetch-depth: 0
+
+    - name: Setup yq
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip
+        pip3 install yq
+
+    - name: Modify YAML file
+      run: |
+        cd repo/.github/workflows/
+        yq eval -i '.jobs.publish-template.strategy.matrix.include += [{"runtime": env.runtime, "target_repo": env.target_repo}]' config.yaml
+
+    - name: Commit and push changes
+      run: |
+        cd repo
+        git config --global user.name "[bot]"
+        git config --global user.email "[bot]"
+        git add .github/workflows/config.yaml
+        git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT }}
