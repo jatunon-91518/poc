@@ -6,11 +6,11 @@ on:
       runtime:
         description: 'Specify the runtime'
         required: true
-        default: 'xxx'
+        default: 'batch'
       target_repo:
         description: 'Specify the target repository'
         required: true
-        default: 'xxx'
+        default: 'mpay-modernization-batch-newrepo'
 
 jobs:
   add-runtime:
@@ -25,30 +25,28 @@ jobs:
         path: repo
         fetch-depth: 0
 
-    - name: Setup yq
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3-pip
-        pip3 install yq
-
     - name: Modify YAML file
       run: |
         cd repo/.github/workflows/
+        runtime=${{ github.event.inputs.runtime }}
+        target_repo=${{ github.event.inputs.target_repo }}
+
         # หา index ของกลุ่ม runtime ที่ต้องการเพิ่ม
-        index=$(awk '/- runtime: '"${{ github.event.inputs.runtime }}"'/{print NR; exit}' config.yml)
-        # ถ้าเจอ runtime ที่ตรงกันให้เพิ่ม entry ใหม่หลังบรรทัดนั้น
-        if [ -n "$index" ]; then
-          sed -i "${index}a\ \ \ \ \ \ \ \ - runtime: ${GITHUB_EVENT_INPUTS_RUNTIME}\n \ \ \ \ \ \ \ \ \ target_repo: ${GITHUB_EVENT_INPUTS_TARGET_REPO}" config.yml
-        else
-          echo "Runtime not found!"
-          exit 1
-        fi
+        awk -v runtime="$runtime" -v target_repo="$target_repo" '
+          /- runtime: / && $3 == runtime {
+            print $0
+            print "            - runtime: " runtime
+            print "              target_repo: " target_repo
+            next
+          }
+          { print $0 }
+        ' config.yml > temp.yml && mv temp.yml config.yml
 
     - name: Commit and push changes
       run: |
         cd repo
-        git config --global user.name "[bot]"
-        git config --global user.email "[bot]"
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git add .github/workflows/config.yml
         git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
         git push
