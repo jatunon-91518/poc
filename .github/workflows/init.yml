@@ -34,14 +34,13 @@ jobs:
     - name: Modify YAML file
       run: |
         cd repo/.github/workflows/
-        yq eval -i '.jobs.publish-template.strategy.matrix.include += [{"runtime": env.runtime, "target_repo": env.target_repo}]' config.yaml
-
+        yq -y -i '.jobs.publish-template.strategy.matrix.include += [{"runtime": env.runtime, "target_repo": env.target_repo}]' config.yml
     - name: Commit and push changes
       run: |
         cd repo
         git config --global user.name "[bot]"
         git config --global user.email "[bot]"
-        git add .github/workflows/config.yaml
+        git add .github/workflows/config.yml
         git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
         git push
       env:
