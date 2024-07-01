@@ -32,4 +32,4 @@ jobs:
         target_repo=${{ github.event.inputs.target_repo }}
 
         # Use sed for debugging
-        sed -i "/^- runtime: ${runtime}/a\            - runtime: ${runtime}\n              target_repo: ${target_repo}" config.yml
+        sed "/^- runtime: ${runtime}/a\            - runtime: ${runtime}\n              target_repo: ${target_repo}" config.yml
