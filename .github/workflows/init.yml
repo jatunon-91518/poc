@@ -53,7 +53,7 @@ jobs:
           { print }
         ' config.yml > temp.yml && mv temp.yml config.yml
 
-    - name: Debug: Show modified content of config.yml
+    - name: Debug Show modified content of config.yml
       run: |
         cd repo/.github/workflows/
         cat config.yml
