@@ -34,7 +34,8 @@ jobs:
     - name: Modify YAML file
       run: |
         cd repo/.github/workflows/
-        yq -y -i '.jobs.publish-template.strategy.matrix.include += [{"runtime": env.runtime, "target_repo": env.target_repo}]' config.yml
+        yq -y '.jobs.publish-template.strategy.matrix.include += [{"runtime": env.runtime, "target_repo": env.target_repo}]' config.yml
+
     - name: Commit and push changes
       run: |
         cd repo
