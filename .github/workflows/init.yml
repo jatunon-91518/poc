@@ -25,7 +25,7 @@ jobs:
         path: repo
         fetch-depth: 0
 
-    - name: Debug: Show initial content of config.yml
+    - name: Debug Show initial content of config.yml
       run: |
         cd repo/.github/workflows/
         cat config.yml
