@@ -25,7 +25,7 @@ jobs:
         path: repo
         fetch-depth: 0
 
-    - name: Debug: Show initial content of config.yml
+    - name: Debug Show initial content of config.yml
       run: |
         cd repo/.github/workflows/
         echo "Initial content of config.yml:"
@@ -40,7 +40,7 @@ jobs:
         # Use sed for debugging
         sed -i "/^- runtime: ${runtime}/a\            - runtime: ${runtime}\n              target_repo: ${target_repo}" config.yml
 
-    - name: Debug: Show modified content of config.yml
+    - name: Debug Show modified content of config.yml
       run: |
         cd repo/.github/workflows/
         echo "Modified content of config.yml:"
