@@ -31,15 +31,21 @@ jobs:
         runtime=${{ github.event.inputs.runtime }}
         target_repo=${{ github.event.inputs.target_repo }}
 
-        # หา index ของกลุ่ม runtime ที่ต้องการเพิ่ม
+        # Find the index of the desired runtime group and add the new entry at the top of that group
         awk -v runtime="$runtime" -v target_repo="$target_repo" '
-          /- runtime: / && $3 == runtime {
-            print $0
-            print "            - runtime: " runtime
-            print "              target_repo: " target_repo
-            next
+          BEGIN {
+            added = 0
           }
-          { print $0 }
+          /^- runtime: / {
+            if ($2 == runtime) {
+              if (!added) {
+                print "            - runtime: " runtime
+                print "              target_repo: " target_repo
+                added = 1
+              }
+            }
+          }
+          { print }
         ' config.yml > temp.yml && mv temp.yml config.yml
 
     - name: Commit and push changes
