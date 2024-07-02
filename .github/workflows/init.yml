@@ -30,6 +30,21 @@ jobs:
         RUNTIME=${{ github.event.inputs.runtime }}
         TARGET_REPO=${{ github.event.inputs.target_repo }}
         CONFIG_FILE="repo/.github/workflows/config.yml"
+        
         # Append new runtime and target_repo to the config.yml
         yq eval ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" -i $CONFIG_FILE
+
+        # Reorganize matrix entries by runtime
+        yq eval '
+          .jobs.publish-template.strategy.matrix.include |=
+            [
+              .[] | select(.runtime == "java")[],
+              .[] | select(.runtime == "node")[],
+              .[] | select(.runtime == "batch")[],
+              .[] | select(.runtime == "webhosting")[],
+              .[] | select(.runtime == "maven-shared-libs")[],
+              .[] | select(.runtime == "npm-shared-libs")[]
+            ]
+        ' -i $CONFIG_FILE
+
         cat $CONFIG_FILE
