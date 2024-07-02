@@ -1,16 +1,15 @@
-name: Add Runtime and Target Repo
-
+name: Init New Service
 on:
   workflow_dispatch:
     inputs:
       runtime:
         description: 'Specify the runtime'
         required: true
-        default: 'batch'
+        default: 'java'
       target_repo:
         description: 'Specify the target repository'
         required: true
-        default: 'xxxxxx11111'
+        default: 'mpay-modernization-batch-newrepo'
 
 jobs:
   add-runtime:
@@ -24,7 +23,7 @@ jobs:
         repository: jatunon-91518/config
         path: repo
         fetch-depth: 0
-        
+
     - name: Modify YAML file
       id: modify_yaml
       run: |
@@ -32,26 +31,26 @@ jobs:
         RUNTIME=${{ github.event.inputs.runtime }}
         TARGET_REPO=${{ github.event.inputs.target_repo }}
         CONFIG_FILE="repo/.github/workflows/config.yml"
-        TEMP_FILE="repo/.github/workflows/config.tmp"
-        # Append new runtime and target_repo to the workflow-publisher.yaml
-        yq eval ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" -i $CONFIG_FILE
-        awk -v config_file="$CONFIG_FILE" -v runtime="$RUNTIME" '
-        /#'"$runtime"'_template/ {
-        print;
-        system("grep -A1 \"runtime: " runtime "\" " config_file " | tail -2");
-        next
-        }
-        1
-        ' ${CONFIG_FILE} > ${TEMP_FILE}
-        cat ${TEMP_FILE}
         
-    - name: Commit and push changes
-      run: |
-        cd repo
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add .github/workflows/config.tmp
-        git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
+        # Define the runtime comments and their corresponding runtimes
+        declare -A comments
+        comments["#java"]="java"
+        comments["#node"]="node"
+        comments["#batch"]="batch"
+
+        # Read the file and insert the new entry after the corresponding comment
+        awk -v runtime="$RUNTIME" -v target_repo="$TARGET_REPO" '
+        BEGIN {
+          insert = 0
+        }
+        {
+          print
+          if ($0 == "#"runtime) {
+            insert = 1
+          } else if (insert && $0 ~ /^ *- runtime:/) {
+            print "  - runtime: " runtime
+            print "    target_repo: " target_repo
+            insert = 0
+          }
+        }
+        ' $CONFIG_FILE > temp.yml && mv temp.yml $CONFIG_FILE
