@@ -33,7 +33,14 @@ jobs:
         
         # Define the runtime comments and their corresponding runtimes
         sed -i "/#${RUNTIME}/a\            - runtime: ${RUNTIME}\n              target_repo: ${TARGET_REPO}" $CONFIG_FILE
-        echo '-------------'
-        echo '-------------'
-        echo '-------------'
-        cat $CONFIG_FILE
+
+    - name: Commit and push changes
+      run: |
+        cd repo
+        git config --global user.name "Initail New Service [bot]"
+        git config --global user.email "github-action[bot]"
+        git add .github/workflows/config.yml
+        git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT }}
