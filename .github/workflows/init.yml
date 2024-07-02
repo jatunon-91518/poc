@@ -1,5 +1,4 @@
-name: init
-
+name: Init New Service
 on:
   workflow_dispatch:
     inputs:
@@ -24,21 +23,13 @@ jobs:
         path: repo
         fetch-depth: 0
 
-    - name: Install yq
-      run: |
-        pip install yq
-
     - name: Modify YAML file
       id: modify_yaml
       run: |
+        #!/bin/bash
         RUNTIME=${{ github.event.inputs.runtime }}
         TARGET_REPO=${{ github.event.inputs.target_repo }}
         CONFIG_FILE="repo/.github/workflows/config.yml"
-
-        # Read the existing matrix include section and add new entry
-        yq eval-all --inplace 'select(fileIndex == 0) * {"jobs": {"publish-template": {"strategy": {"matrix": {"include": (select(fileIndex == 0).jobs.publish-template.strategy.matrix.include + [{"runtime": env.RUNTIME, "target_repo": env.TARGET_REPO}] | sort_by(.runtime))}}}}}' $CONFIG_FILE
-
-    - name: Display YAML file
-      run: |
-        CONFIG_FILE="repo/.github/workflows/config.yml"
+        # Append new runtime and target_repo to the config.yml
+        yq eval ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" -i $CONFIG_FILE
         cat $CONFIG_FILE
