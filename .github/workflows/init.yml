@@ -1,14 +1,15 @@
-name: Init New Service
+name: Add Workflow New Service
 on:
   workflow_dispatch:
     inputs:
       runtime:
-        description: 'Specify the runtime'
+        description: 'Ex.. java node batch'
         required: true
+        default: 'java'
       target_repo:
-        description: 'Specify the target repository'
+        description: 'Repository name'
         required: true
-        default: 'mpay-modernization-batch-newrepo'
+        default: 'mpay-modernization-xxxxx'
 
 jobs:
   add-runtime:
@@ -18,8 +19,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.PAT }}
-        repository: jatunon-91518/config
+        token: ${{secrets.ORG_PUSH_PULL_REPO}}
+        repository: ais-pci-spdg/mpay-modernization-devops
         path: repo
         fetch-depth: 0
 
@@ -29,37 +30,30 @@ jobs:
         #!/bin/bash
         RUNTIME=${{ github.event.inputs.runtime }}
         TARGET_REPO=${{ github.event.inputs.target_repo }}
-        CONFIG_FILE="repo/.github/workflows/config.yml"
+        CONFIG_FILE="repo/.github/workflows/workflow-publisher.yaml"
+        CONFIG_PATH="repo/config.yaml"
 
-        # Append new runtime and target_repo to the config.yml
+        # Append new runtime and target_repo to the workflow-publisher.yaml
         yq eval ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" -i $CONFIG_FILE
 
-        # Reorganize matrix entries by runtime
-        TEMP_FILE=$(mktemp)
-        
-        # Extract and reorganize each runtime category
-        {
-          echo "#java"
-          yq eval '.jobs.publish-template.strategy.matrix.include[] | select(.runtime == "java")' $CONFIG_FILE | yq eval '.[]' - || true
+        # Process config.yaml
+        # 1. Insert additional lines after the #${RUNTIME}_template line
+        awk -v runtime="$RUNTIME" '
+          /#'"${RUNTIME}"'_template/ {
+            print
+            # Print the lines from config.yaml matching the pattern
+            system("grep -A1 '\''runtime: " runtime "'\'' " CONFIG_PATH " | tail -2")
+            next
+          }
+          { print }
+        ' config.yaml > tmp.yaml && mv tmp.yaml config.yaml
 
-          echo "#node"
-          yq eval '.jobs.publish-template.strategy.matrix.include[] | select(.runtime == "node")' $CONFIG_FILE | yq eval '.[]' - || true
+        # 2. Remove lines related to target_repo
+        awk -v repo="$TARGET_REPO" '
+          $0 ~ repo { skip=1 }
+          skip && /^runtime:/ { skip=0 }
+          !skip { print }
+        ' config.yaml > tmp.yaml && mv tmp.yaml config.yaml
 
-          echo "#batch"
-          yq eval '.jobs.publish-template.strategy.matrix.include[] | select(.runtime == "batch")' $CONFIG_FILE | yq eval '.[]' - || true
-
-          echo "#webhosting"
-          yq eval '.jobs.publish-template.strategy.matrix.include[] | select(.runtime == "webhosting")' $CONFIG_FILE | yq eval '.[]' - || true
-
-          echo "#maven-shared-libs"
-          yq eval '.jobs.publish-template.strategy.matrix.include[] | select(.runtime == "maven-shared-libs")' $CONFIG_FILE | yq eval '.[]' - || true
-
-          echo "#npm-shared-libs"
-          yq eval '.jobs.publish-template.strategy.matrix.include[] | select(.runtime == "npm-shared-libs")' $CONFIG_FILE | yq eval '.[]' - || true
-        } > $TEMP_FILE
-
-        # Replace the old config file with the reorganized one
-        mv $TEMP_FILE $CONFIG_FILE
-
-        # Print the modified config.yml for verification
-        cat $CONFIG_FILE
+        # Display the modified config.yaml for verification
+        cat config.yaml
