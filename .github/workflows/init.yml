@@ -5,7 +5,6 @@ on:
       runtime:
         description: 'Specify the runtime'
         required: true
-        default: 'java'
       target_repo:
         description: 'Specify the target repository'
         required: true
@@ -53,5 +52,6 @@ jobs:
             insert = 0
           }
         }
-        ' $CONFIG_FILE
+        ' $CONFIG_FILE > temp.yml && mv temp.yml $CONFIG_FILE
+        echo '---------------------'
         cat $CONFIG_FILE
