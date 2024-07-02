@@ -1,12 +1,9 @@
-name: Add Runtime and Target Repo
-
 on:
   workflow_dispatch:
     inputs:
       runtime:
         description: 'Specify the runtime'
         required: true
-        default: 'batch'
       target_repo:
         description: 'Specify the target repository'
         required: true
@@ -30,6 +27,17 @@ jobs:
         cd repo/.github/workflows/
         runtime=${{ github.event.inputs.runtime }}
         target_repo=${{ github.event.inputs.target_repo }}
+        text_line_1="  - runtime: ${runtime}"
+        text_line_2="    target_repo: ${target_repo}"
 
-        # Use sed for debugging
-        sed "/^- runtime: batch/a\            - runtime: batch\n              target_repo: mpay-modernization-batch-newrepo config.yml
+        # Find the template section using grep
+        template_section=$(grep -E "^# (.*)_template$" config.yml)
+
+        # Add lines only if a template section is found
+        if [[ ! -z "$template_section" ]]; then
+          # Add new lines after the template section header using sed
+          sed i "/$template_section/a \  $text_line_1" config.yml
+          sed i "/$template_section/a \  $text_line_2" config.yml
+        else
+          echo "Error: Could not find template section in config.yml"
+        fi
