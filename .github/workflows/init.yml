@@ -32,7 +32,7 @@ jobs:
         CONFIG_FILE="repo/.github/workflows/config.yml"
         
         # Define the runtime comments and their corresponding runtimes
-        sed -i "/#${RUNTIME}/a\  - runtime: ${RUNTIME}\n    target_repo: ${TARGET_REPO}" $CONFIG_FILE
+        sed -i "/#${RUNTIME}/a\            - runtime: ${RUNTIME}\n              target_repo: ${TARGET_REPO}" $CONFIG_FILE
         echo '-------------'
         echo '-------------'
         echo '-------------'
