@@ -41,7 +41,7 @@ jobs:
         git config --global user.name "Initail New Service [bot]"
         git config --global user.email "github-action[bot]"
         git add .github/workflows/config.yml
-        git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
+        git commit -m "Add runtime: ${{ github.event.inputs.runtime }} and target_repo: ${{ github.event.inputs.target_repo }}"
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.PAT }}
