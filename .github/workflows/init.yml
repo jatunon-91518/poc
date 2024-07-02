@@ -5,10 +5,11 @@ on:
       runtime:
         description: 'Specify the runtime'
         required: true
+        default: 'service type'
       target_repo:
         description: 'Specify the target repository'
         required: true
-        default: 'mpay-modernization-batch-newrepo'
+        default: 'service name'
 
 jobs:
   add-runtime:
