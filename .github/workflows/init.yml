@@ -1,3 +1,4 @@
+name: Init 
 on:
   workflow_dispatch:
     inputs:
@@ -33,7 +34,7 @@ jobs:
       run: |
         RUNTIME=${{ github.event.inputs.runtime }}
         TARGET_REPO=${{ github.event.inputs.target_repo }}
-        CONFIG_FILE="repo/config.yml"
+        CONFIG_FILE="repo/.github/workflows/config.yml"
 
         # Read the existing matrix include section
         INCLUDE=$(yq eval ".jobs.publish-template.strategy.matrix.include" $CONFIG_FILE | jq -c .)
