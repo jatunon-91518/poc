@@ -28,7 +28,7 @@ jobs:
         #!/bin/bash
         RUNTIME=${{ github.event.inputs.runtime }}
         TARGET_REPO=${{ github.event.inputs.target_repo }}
-        CONFIG_FILE="repo/config.yml"
+        CONFIG_FILE="repo/.github/workflows/config.yml"
 
         # Append new runtime and target_repo to the config.yml
         yq eval ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" -i $CONFIG_FILE
