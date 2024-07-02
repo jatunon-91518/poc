@@ -24,10 +24,8 @@ jobs:
         path: repo
         fetch-depth: 0
 
-    - name: Install yq and jq
+    - name: Install yq
       run: |
-        sudo apt-get update
-        sudo apt-get install -y jq
         pip install yq
 
     - name: Modify YAML file
@@ -38,14 +36,10 @@ jobs:
         CONFIG_FILE="repo/.github/workflows/config.yml"
 
         # Read the existing matrix include section
-        INCLUDE=$(yq eval ".jobs.publish-template.strategy.matrix.include" $CONFIG_FILE | jq -c .)
+        yq eval ".jobs.publish-template.strategy.matrix.include" $CONFIG_FILE > temp_include.json
 
-        # Prepare the new entry
-        NEW_ENTRY="{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}"
+        # Add new entry
+        yq eval -i ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" $CONFIG_FILE
 
-        # Combine and sort the entries
-        COMBINED=$(echo "$INCLUDE" | jq --argjson new_entry "$NEW_ENTRY" '[.[]] + [$new_entry] | group_by(.runtime) | map(.[])')
-
-        # Write the updated matrix back to the config file
-        yq eval --inplace ".jobs.publish-template.strategy.matrix.include = $COMBINED" $CONFIG_FILE
-        cat $CONFIG_FILE
+        # Sort the entries and group by runtime
+        yq eval -i '... comments="" | .jobs.publish-template.strategy.matrix.include |= sort_by(.runtime)' $CONFIG_FILE
