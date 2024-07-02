@@ -53,15 +53,5 @@ jobs:
             insert = 0
           }
         }
-        ' $CONFIG_FILE > temp.yml
-        
-    - name: Commit and push changes
-      run: |
-        cd repo
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add .github/workflows/temp.yml
-        git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
+        ' $CONFIG_FILE
+        cat $CONFIG_FILE
