@@ -1,3 +1,4 @@
+name: Init New Service
 on:
   workflow_dispatch:
     inputs:
