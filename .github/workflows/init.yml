@@ -34,24 +34,30 @@ jobs:
         # Append new runtime and target_repo to the config.yml
         yq eval ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" -i $CONFIG_FILE
 
-        # Reorganize matrix entries by runtime
-        yq eval '
-          .jobs.publish-template.strategy.matrix.include |=
-            [
-              #java
-              .[] | select(.runtime == "java")[],
-              #node
-              .[] | select(.runtime == "node")[],
-              #batch
-              .[] | select(.runtime == "batch")[],
-              #webhosting
-              .[] | select(.runtime == "webhosting")[],
-              #maven-shared-libs
-              .[] | select(.runtime == "maven-shared-libs")[],
-              #npm-shared-libs
-              .[] | select(.runtime == "npm-shared-libs")[]
-            ]
-        ' -i $CONFIG_FILE
+        # Extract all entries from the config file
+        entries=$(yq eval '.jobs.publish-template.strategy.matrix.include[]' $CONFIG_FILE)
+
+        # Create arrays for different runtimes
+        java_entries=$(echo "$entries" | yq eval 'select(.runtime == "java")' -)
+        node_entries=$(echo "$entries" | yq eval 'select(.runtime == "node")' -)
+        batch_entries=$(echo "$entries" | yq eval 'select(.runtime == "batch")' -)
+        webhosting_entries=$(echo "$entries" | yq eval 'select(.runtime == "webhosting")' -)
+        maven_shl_entries=$(echo "$entries" | yq eval 'select(.runtime == "maven-shared-libs")' -)
+        npm_shl_entries=$(echo "$entries" | yq eval 'select(.runtime == "npm-shared-libs")' -)
+
+        # Reorganize the entries
+        echo "#java" > $CONFIG_FILE
+        echo "$java_entries" >> $CONFIG_FILE
+        echo "#node" >> $CONFIG_FILE
+        echo "$node_entries" >> $CONFIG_FILE
+        echo "#batch" >> $CONFIG_FILE
+        echo "$batch_entries" >> $CONFIG_FILE
+        echo "#webhosting" >> $CONFIG_FILE
+        echo "$webhosting_entries" >> $CONFIG_FILE
+        echo "#maven-shared-libs" >> $CONFIG_FILE
+        echo "$maven_shl_entries" >> $CONFIG_FILE
+        echo "#npm-shared-libs" >> $CONFIG_FILE
+        echo "$npm_shl_entries" >> $CONFIG_FILE
 
         # Print the modified config.yml for verification
         cat $CONFIG_FILE
