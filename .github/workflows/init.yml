@@ -35,11 +35,10 @@ jobs:
         TARGET_REPO=${{ github.event.inputs.target_repo }}
         CONFIG_FILE="repo/.github/workflows/config.yml"
 
-        # Read the existing matrix include section
-        yq eval ".jobs.publish-template.strategy.matrix.include" $CONFIG_FILE > temp_include.json
+        # Read the existing matrix include section and add new entry
+        yq eval-all --inplace 'select(fileIndex == 0) * {"jobs": {"publish-template": {"strategy": {"matrix": {"include": (select(fileIndex == 0).jobs.publish-template.strategy.matrix.include + [{"runtime": env.RUNTIME, "target_repo": env.TARGET_REPO}] | sort_by(.runtime))}}}}}' $CONFIG_FILE
 
-        # Add new entry
-        yq eval -i ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" $CONFIG_FILE
-
-        # Sort the entries and group by runtime
-        yq eval -i '... comments="" | .jobs.publish-template.strategy.matrix.include |= sort_by(.runtime)' $CONFIG_FILE
+    - name: Display YAML file
+      run: |
+        CONFIG_FILE="repo/.github/workflows/config.yml"
+        cat $CONFIG_FILE
