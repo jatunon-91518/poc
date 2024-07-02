@@ -1,15 +1,16 @@
-name: Add Workflow New Service
+name: Add Runtime and Target Repo
+
 on:
   workflow_dispatch:
     inputs:
       runtime:
-        description: 'Ex.. java node batch'
+        description: 'Specify the runtime'
         required: true
-        default: 'java'
+        default: 'batch'
       target_repo:
-        description: 'Repository name'
+        description: 'Specify the target repository'
         required: true
-        default: 'mpay-modernization-xxxxx'
+        default: 'xxxxxx11111'
 
 jobs:
   add-runtime:
@@ -19,41 +20,38 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        token: ${{secrets.ORG_PUSH_PULL_REPO}}
-        repository: ais-pci-spdg/mpay-modernization-devops
+        token: ${{ secrets.PAT }}
+        repository: jatunon-91518/config
         path: repo
         fetch-depth: 0
-
+        
     - name: Modify YAML file
       id: modify_yaml
       run: |
         #!/bin/bash
         RUNTIME=${{ github.event.inputs.runtime }}
         TARGET_REPO=${{ github.event.inputs.target_repo }}
-        CONFIG_FILE="repo/.github/workflows/workflow-publisher.yaml"
-        CONFIG_PATH="repo/config.yaml"
-
+        CONFIG_FILE="repo/.github/workflows/config.yml"
+        TEMP_FILE="repo/.github/workflows/config.tmp"
         # Append new runtime and target_repo to the workflow-publisher.yaml
         yq eval ".jobs.publish-template.strategy.matrix.include += [{\"runtime\": \"${RUNTIME}\", \"target_repo\": \"${TARGET_REPO}\"}]" -i $CONFIG_FILE
-
-        # Process config.yaml
-        # 1. Insert additional lines after the #${RUNTIME}_template line
-        awk -v runtime="$RUNTIME" '
-          /#'"${RUNTIME}"'_template/ {
-            print
-            # Print the lines from config.yaml matching the pattern
-            system("grep -A1 '\''runtime: " runtime "'\'' " CONFIG_PATH " | tail -2")
-            next
-          }
-          { print }
-        ' config.yaml > tmp.yaml && mv tmp.yaml config.yaml
-
-        # 2. Remove lines related to target_repo
-        awk -v repo="$TARGET_REPO" '
-          $0 ~ repo { skip=1 }
-          skip && /^runtime:/ { skip=0 }
-          !skip { print }
-        ' config.yaml > tmp.yaml && mv tmp.yaml config.yaml
-
-        # Display the modified config.yaml for verification
-        cat config.yaml
+        awk -v config_file="$CONFIG_FILE" -v runtime="$RUNTIME" '
+        /#'"$runtime"'_template/ {
+        print;
+        system("grep -A1 \"runtime: " runtime "\" " config_file " | tail -2");
+        next
+        }
+        1
+        ' ${CONFIG_FILE} > ${TEMP_FILE}
+        cat ${TEMP_FILE}
+        
+    - name: Commit and push changes
+      run: |
+        cd repo
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add .github/workflows/config.tmp
+        git commit -m "Add runtime and target_repo: ${{ github.event.inputs.runtime }}, ${{ github.event.inputs.target_repo }}"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT }}
