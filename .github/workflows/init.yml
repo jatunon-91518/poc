@@ -1,15 +1,15 @@
-name: Set Repository Secrets
+name: Set Repository Configuration
 
 on:
   workflow_dispatch:
     inputs:
       target_repo:
-        description: 'The name of the repository to add secrets to'
+        description: 'The name of the repository to add configuration to'
         required: true
         default: ''
 
 jobs:
-  set-secrets:
+  set-config:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -29,17 +29,16 @@ jobs:
           echo "Repository: ${{ github.repository }}"
           echo "Repository Name: ${{ github.event.repository.name }}"
 
-      - name: Set Repository Secrets
+      - name: Set Repository Configuration
         env:
-          GH_TOKEN: ${{ secrets.test }}
-          AAA: ${{ secrets.AAA }}
-          BBB: ${{ secrets.BBB }}
+          GH_TOKEN: ${{ secrets.test }}  # Token in repo `test`
+          CONFIG_AAA: ${{ secrets.AAA }}
+          CONFIG_BBB: ${{ secrets.BBB }}
         run: |
-          REPO_NAME=${{ github.repository }}
-          TARGET_REPO="ais-pci-spdg/mpay-modernization-security-test"
-          xs=("AAA" "BBB")
-          for x in "${xx[@]}"; do
-            x_value=$(eval echo \$$x)
-            echo "Adding secret ${x} to $TARGET_REPO"
-            gh secret set ${x} -b "$x_valut" -R $TARGET_REPO
+          TARGET_REPO="mpay-modernization-security-test"
+          CONFIGS=("CONFIG_AAA" "CONFIG_BBB")
+          for CONFIG_NAME in "${CONFIGS[@]}"; do
+            CONFIG_VALUE=$(eval echo \$$CONFIG_NAME)
+            echo "Adding configuration ${CONFIG_NAME#CONFIG_} to $TARGET_REPO"
+            echo $CONFIG_VALUE | gh secret set ${CONFIG_NAME#CONFIG_} -b - -R $TARGET_REPO
           done
