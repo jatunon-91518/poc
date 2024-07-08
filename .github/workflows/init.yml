@@ -35,7 +35,7 @@ jobs:
           CONFIG_AAA: ${{ secrets.AAA }}
           CONFIG_BBB: ${{ secrets.BBB }}
         run: |
-          TARGET_REPO="mpay-modernization-security-test"
+          TARGET_REPO="ais-pci-spdg/mpay-modernization-security-test"
           CONFIGS=("CONFIG_AAA" "CONFIG_BBB")
           for CONFIG_NAME in "${CONFIGS[@]}"; do
             CONFIG_VALUE=$(eval echo \$$CONFIG_NAME)
