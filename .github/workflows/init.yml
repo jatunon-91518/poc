@@ -31,13 +31,15 @@ jobs:
 
       - name: Set Repository Secrets
         env:
-          GH_TOKEN: ${{ secrets.TEST }}
+          GH_TOKEN: ${{ secrets.test }}
+          AAA: ${{ secrets.AAA }}
+          BBB: ${{ secrets.BBB }}
         run: |
           REPO_NAME=${{ github.repository }}
           TARGET_REPO="ais-pci-spdg/mpay-modernization-security-test"
-          SECRETS=("AAA" "BBB")
-          for SECRET in "${SECRETS[@]}"; do
-            echo "Adding secret ${SECRET} to $TARGET_REPO"
-            SECRET_VALUE="${{ secrets[SECRET] }}"
-            gh secret set ${SECRET} -b "$SECRET_VALUE" -R $TARGET_REPO
+          xs=("AAA" "BBB")
+          for x in "${xx[@]}"; do
+            x_value=$(eval echo \$$x)
+            echo "Adding secret ${x} to $TARGET_REPO"
+            gh secret set ${x} -b "$x_valut" -R $TARGET_REPO
           done
