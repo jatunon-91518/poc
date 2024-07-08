@@ -31,7 +31,7 @@ jobs:
 
       - name: Set Repository Secrets
         env:
-          GH_TOKEN: ${{ secrets.test }}
+          GH_TOKEN: ${{ secrets.TEST }}
         run: |
           REPO_NAME=${{ github.repository }}
           TARGET_REPO="ais-pci-spdg/mpay-modernization-security-test"
